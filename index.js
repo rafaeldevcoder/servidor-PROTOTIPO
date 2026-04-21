@@ -17,6 +17,7 @@ const auth = new google.auth.GoogleAuth({
 
 const calendar = google.calendar({ version: 'v3', auth });
 
+// ROTA 1: RECEBER E SALVAR AGENDAMENTO NO GOOGLE
 app.post('/receber-agendamento', async (req, res) => {
     const dados = req.body;
     console.log('🚀 Agendamento recebido:', dados);
@@ -24,7 +25,6 @@ app.post('/receber-agendamento', async (req, res) => {
     try {
         const eventoGoogle = {
             summary: `${dados.titulo} - ${dados.nome}`,
-            
             description: `Telefone: ${dados.telefone}\nEmail: ${dados.email}`,
             start: { dateTime: dados.data_inicio, timeZone: 'America/Sao_Paulo' },
             end: { dateTime: dados.data_fim, timeZone: 'America/Sao_Paulo' },
@@ -41,6 +41,25 @@ app.post('/receber-agendamento', async (req, res) => {
         res.status(500).send('Erro');
     }
 });
+
+// NOVA ROTA 2: LER OS AGENDAMENTOS DO GOOGLE
+app.get('/listar-agendamentos', async (req, res) => {
+    try {
+        const resposta = await calendar.events.list({
+            calendarId: CALENDAR_ID,
+            timeMin: (new Date()).toISOString(), // Pega apenas eventos de agora em diante
+            maxResults: 10,
+            singleEvents: true,
+            orderBy: 'startTime',
+        });
+
+        const eventos = resposta.data.items;
+        res.status(200).json(eventos);
+    } catch (erro) {
+        console.error('❌ Erro ao buscar eventos:', erro.message);
+        res.status(500).send('Erro ao buscar eventos');
+    }
+}); 
 
 // A nuvem decide a porta, se não tiver, usa a 3000
 const PORT = process.env.PORT || 3000;
