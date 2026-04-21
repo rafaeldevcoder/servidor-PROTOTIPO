@@ -23,7 +23,8 @@ app.post('/receber-agendamento', async (req, res) => {
 
     try {
         const eventoGoogle = {
-            summary: `Novo Negócio: ${dados.nome}`,
+            summary: `${dados.titulo} - ${dados.nome}`,
+            
             description: `Telefone: ${dados.telefone}\nEmail: ${dados.email}`,
             start: { dateTime: dados.data_inicio, timeZone: 'America/Sao_Paulo' },
             end: { dateTime: dados.data_fim, timeZone: 'America/Sao_Paulo' },
