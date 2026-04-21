@@ -8,7 +8,7 @@ app.use(express.json());
 
 const CREDENCIAIS = './credenciais-google.json';
 // Substitua pelo SEU EMAIL compartilhado na agenda
-const CALENDAR_ID = 'seu-email-aqui@gmail.com'; 
+const CALENDAR_ID = 'para-prototipo@striking-talent-494015-a2.iam.gserviceaccount.com'; 
 
 const auth = new google.auth.GoogleAuth({
     keyFile: CREDENCIAIS,
