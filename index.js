@@ -28,18 +28,11 @@ app.post('/receber-agendamento', async (req, res) => {
             description: `Telefone: ${dados.telefone}\nEmail: ${dados.email}`,
             start: { dateTime: dados.data_inicio, timeZone: 'America/Sao_Paulo' },
             end: { dateTime: dados.data_fim, timeZone: 'America/Sao_Paulo' },
-            
-            // 🔥 A MÁGICA ACONTECE AQUI: Adicionando o cliente como convidado
-            attendees: [
-                { email: dados.email }
-            ]
         };
 
         await calendar.events.insert({
             calendarId: CALENDAR_ID,
             resource: eventoGoogle,
-            // 🔥 COMANDO PARA O GOOGLE: "Avise todos os convidados por e-mail!"
-            sendUpdates: 'all',
         });
 
         res.status(200).send('Sucesso');
@@ -49,7 +42,7 @@ app.post('/receber-agendamento', async (req, res) => {
     }
 });
 
-// ROTA 2: LER OS AGENDAMENTOS DO GOOGLE
+// NOVA ROTA 2: LER OS AGENDAMENTOS DO GOOGLE
 app.get('/listar-agendamentos', async (req, res) => {
     try {
         const resposta = await calendar.events.list({
