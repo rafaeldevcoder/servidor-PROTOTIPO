@@ -8,7 +8,7 @@ app.use(express.json());
 
 const CREDENCIAIS = './credenciais-google.json';
 
-// Este continua sendo o seu e-mail principal para a listagem da tabela
+// Este continua sendo o e-mail "Geral/Master" da empresa
 const CALENDAR_ID_PRINCIPAL = 'devprototipo@gmail.com'; 
 
 const auth = new google.auth.GoogleAuth({
@@ -18,39 +18,38 @@ const auth = new google.auth.GoogleAuth({
 
 const calendar = google.calendar({ version: 'v3', auth });
 
-// ROTA 1: RECEBER E SALVAR NO CALENDAR DO CLIENTE (DINÂMICO)
+// ROTA 1: RECEBER E SALVAR NO CALENDAR DO USUÁRIO (DINÂMICO)
 app.post('/receber-agendamento', async (req, res) => {
     const dados = req.body;
-    console.log('🚀 Tentando agendar para:', dados.email);
+    console.log('🚀 Tentando agendar para a conta de:', dados.email);
 
     try {
         const eventoGoogle = {
             summary: `${dados.titulo} - ${dados.nome}`,
-            description: `Telefone: ${dados.telefone}\nEmail de Contato: ${dados.email}`,
+            // Descrição atualizada para focar no cliente!
+            description: `👤 Cliente: ${dados.nome}\n📱 WhatsApp: ${dados.telefone}\n\nAgendado via LeverSales.`,
             start: { dateTime: dados.data_inicio, timeZone: 'America/Sao_Paulo' },
             end: { dateTime: dados.data_fim, timeZone: 'America/Sao_Paulo' },
         };
 
-        // O segredo está aqui: usamos o e-mail que veio do formulário como o ID da agenda
+        // Usa o e-mail do consultor (que veio do form) como o ID da agenda
         await calendar.events.insert({
             calendarId: dados.email, 
             resource: eventoGoogle,
         });
 
-        console.log('✅ Sucesso ao gravar na agenda de:', dados.email);
+        console.log('✅ Sucesso ao gravar na agenda pessoal de:', dados.email);
         res.status(200).send('Sucesso');
     } catch (erro) {
-        console.error('❌ Erro ao acessar agenda externa:', erro.message);
+        console.error('❌ O usuário não deu permissão. Salvando na Geral...', erro.message);
         
-        // Se der erro na agenda do cliente (ex: ele não compartilhou), 
-        // tentamos salvar na sua agenda principal como backup para você não perder o dado
+        // Backup na conta geral da LeverSales
         try {
-            console.log('⚠️ Tentando salvar na agenda principal como backup...');
             await calendar.events.insert({
                 calendarId: CALENDAR_ID_PRINCIPAL,
                 resource: {
                     ...eventoGoogle,
-                    summary: `[BACKUP] ${dados.titulo} - ${dados.nome}`
+                    summary: `[GERAL] ${dados.titulo} - ${dados.nome}` // Coloca uma tag para identificar
                 },
             });
             res.status(200).send('Sucesso (Backup)');
@@ -60,7 +59,7 @@ app.post('/receber-agendamento', async (req, res) => {
     }
 });
 
-// NOVA ROTA 2: LER OS AGENDAMENTOS (Lista os da sua conta principal)
+// ROTA 2: LER OS AGENDAMENTOS (Lista os da conta Geral/Master na vitrine)
 app.get('/listar-agendamentos', async (req, res) => {
     try {
         const resposta = await calendar.events.list({
@@ -81,5 +80,5 @@ app.get('/listar-agendamentos', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🤖 Servidor inteligente rodando na porta ${PORT}!`);
+    console.log(`🤖 Servidor CRM rodando na porta ${PORT}!`);
 });
